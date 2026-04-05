@@ -4,6 +4,7 @@ from langchain_core.tools import tool
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 from typing import TypedDict, Annotated
+from pydantic import BaseModel
 import operator
 from dotenv import load_dotenv
 import os
@@ -12,6 +13,12 @@ import json
 load_dotenv()
 tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 llm = ChatOpenAI(model="gpt-4o-mini", api_key=os.getenv("OPENAI_API_KEY"))
+
+class ResearchReport(BaseModel):
+    title: str
+    summary: str
+    key_points: list[str]
+    conclusion: str
 
 # 定義工具
 @tool
@@ -62,14 +69,15 @@ def report_node(state: ResearchState) -> ResearchState:
         資料：{search_content}
     """)
     content = response.content.strip().replace("```json", "").replace("```", "").strip()
-    return {"report": json.loads(content)}
+    report = ResearchReport(**json.loads(content))
+    return {"report": report.model_dump()}
 
 # 判斷下一步：還要繼續用工具，還是產生報告
 def should_continue(state: ResearchState) -> str:
     last_message = state["messages"][-1]
     if hasattr(last_message, "tool_calls") and last_message.tool_calls:
-        return "tools"  # 還有工具要呼叫
-    return "report"     # 可以產生報告了
+        return "tools"
+    return "report"
 
 # 建立 Agent
 def build_agent():
@@ -84,7 +92,7 @@ def build_agent():
         "tools": "tools",
         "report": "report"
     })
-    graph.add_edge("tools", "agent")  # 工具執行完回到 agent
+    graph.add_edge("tools", "agent")
     graph.add_edge("report", END)
 
     return graph.compile()
