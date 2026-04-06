@@ -2,6 +2,10 @@
 
 一個基於 LangGraph + Tool Calling 的 AI 自動研究助手，輸入主題後自動搜尋網路資料，產生結構化研究報告。
 
+**Live Demo API**: https://ai-research-assistant-production-9f6e.up.railway.app
+
+**前端**：本機執行 Streamlit（`streamlit run streamlit_app.py`）
+
 ## 功能
 
 - **自動研究**：輸入主題，Agent 自動搜尋相關資料並產生報告
