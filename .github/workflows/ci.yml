@@ -10,6 +10,20 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: ai_research
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: 取得程式碼
         uses: actions/checkout@v3
@@ -24,10 +38,13 @@ jobs:
 
       - name: 設定環境變數
         run: |
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgresql://postgres:testpassword@localhost:5432/ai_research" >> $GITHUB_ENV
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
           echo "TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }}" >> $GITHUB_ENV
+
+      - name: 執行資料庫遷移
+        run: alembic upgrade head
 
       - name: 跑測試
         run: pytest tests/ -v
