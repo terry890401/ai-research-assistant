@@ -97,9 +97,8 @@ def build_agent():
 
     return graph.compile()
 
-agent = build_agent()
 
-def run_research(topic: str) -> dict:
+def run_research(topic: str, agent) -> dict:
     from langchain_core.messages import HumanMessage
     initial_message = HumanMessage(content=f"請幫我研究「{topic}」這個主題，搜尋相關資訊後產生報告")
     result = agent.invoke({

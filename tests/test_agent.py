@@ -10,8 +10,9 @@ def test_search_web():
     assert len(result) > 0
 
 def test_run_research():
-    from app.agent import run_research
-    result = run_research("人工智慧發展趨勢")
+    from app.agent import run_research, build_agent
+    agent = build_agent()
+    result = run_research("人工智慧發展趨勢",agent)
     
     assert isinstance(result, dict)
     assert "title" in result

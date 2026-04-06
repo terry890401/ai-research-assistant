@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import get_current_user
@@ -10,17 +10,14 @@ import json
 router = APIRouter(prefix="/research", tags=["研究任務"])
 
 # 背景執行 Agent
-def process_research(research_id: int, topic: str, db: Session):
+def process_research(research_id: int, topic: str, db: Session, agent):
     try:
-        # 更新狀態為 running
         research = db.query(Research).filter(Research.id == research_id).first()
         research.status = "running"
         db.commit()
 
-        # 執行 Agent
-        report = run_research(topic)
+        report = run_research(topic, agent)
 
-        # 更新狀態為 completed，存入結果
         research.status = "completed"
         research.result = json.dumps(report, ensure_ascii=False)
         db.commit()
@@ -33,6 +30,7 @@ def process_research(research_id: int, topic: str, db: Session):
 # 建立研究任務
 @router.post("/", response_model=ResearchResponse, status_code=201)
 def create_research(
+    request: Request,
     data: ResearchCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
@@ -47,7 +45,8 @@ def create_research(
     db.commit()
     db.refresh(research)
 
-    background_tasks.add_task(process_research, research.id, data.topic, db)
+    agent = request.app.state.agent
+    background_tasks.add_task(process_research, research.id, data.topic, db, agent)
 
     return research
 
