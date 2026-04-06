@@ -19,3 +19,17 @@ class UserResponse(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+
+class ResearchCreate(BaseModel):
+    topic: str
+
+class ResearchResponse(BaseModel):
+    id: int
+    user_id: int
+    topic: str
+    status: str
+    result: str | None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
