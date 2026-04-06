@@ -3,7 +3,7 @@ import requests
 import time
 import json
 
-API = "http://localhost:8000"
+API = "https://ai-research-assistant-production-9f6e.up.railway.app"
 
 st.set_page_config(page_title="AI Research Assistant")
 st.title("AI Research Assistant")
